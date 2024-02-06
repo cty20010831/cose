@@ -19,12 +19,13 @@ from smartink.config.config_embedding import build_dataset
 
 FLAGS = define_flags()
 
-gpu = tf.config.experimental.list_physical_devices('GPU')[0]
-if gpu:
-  try:
-    tf.config.experimental.set_memory_growth(gpu, True)
-  except RuntimeError as e:
-    print(e)
+# Comment out gpu section
+# gpu = tf.config.experimental.list_physical_devices('GPU')[0]
+# if gpu:
+#   try:
+#     tf.config.experimental.set_memory_growth(gpu, True)
+#   except RuntimeError as e:
+#     print(e)
 
 
 def main(argv):

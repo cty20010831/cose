@@ -24,13 +24,13 @@ from smartink.source.eval_engine import EvalEngine
 from smartink.util.utils import NotPredictiveModelError
 from smartink.util.utils import ModelNotFoundError
 
-
-gpu = tf.config.experimental.list_physical_devices('GPU')[0]
-if gpu:
-  try:
-    tf.config.experimental.set_memory_growth(gpu, True)
-  except RuntimeError as e:
-    print(e)
+# Comment out the gpu section
+# gpu = tf.config.experimental.list_physical_devices('GPU')[0]
+# if gpu:
+#   try:
+#     tf.config.experimental.set_memory_growth(gpu, True)
+#   except RuntimeError as e:
+#     print(e)
 
 
 def main(argv):

@@ -24,13 +24,13 @@ import smartink.loss.chamfer as chamfer
 # plt.style.use('ggplot')
 matplotlib.use('Agg')
 
-
-gpu = tf.config.experimental.list_physical_devices('GPU')[0]
-if gpu:
-  try:
-    tf.config.experimental.set_memory_growth(gpu, True)
-  except RuntimeError as e:
-    print(e)
+# Comment out the gpu section
+# gpu = tf.config.experimental.list_physical_devices('GPU')[0]
+# if gpu:
+#   try:
+#     tf.config.experimental.set_memory_growth(gpu, True)
+#   except RuntimeError as e:
+#     print(e)
 
 
 def fit_multivariate_normal(data):
