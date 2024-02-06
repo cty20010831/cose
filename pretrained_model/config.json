@@ -1,0 +1,187 @@
+{
+    "data": {
+        "affine_prob": 0.3,
+        "batch_size": 128,
+        "concat_t_inputs": false,
+        "data_dir": null,
+        "data_meta_fname": "didi_wo_text-stats-origin_abs_pos.npy",
+        "data_name": "didi_wo_text",
+        "data_tfrecord_fname": [
+            "diagrams_wo_text_20200131-?????-of-?????"
+        ],
+        "gt_targets": true,
+        "int_t_samples": false,
+        "mask_pen": true,
+        "max_length_threshold": 201,
+        "meta_data_path": "<path-to-data>/didi_wo_text/didi_wo_text-stats-origin_abs_pos.npy",
+        "n_t_samples": 4,
+        "normalize": true,
+        "pp_relative_pos": false,
+        "pp_to_origin": true,
+        "resampling_factor": 2,
+        "reverse_prob": 0.0,
+        "scale_factor": 0.0,
+        "t_drop_ratio": 0.0,
+        "test_data_path": [
+            "<path-to-data>didi_wo_text/test/diagrams_wo_text_20200131-?????-of-?????"
+        ],
+        "train_data_path": [
+            "<path-to-data>didi_wo_text/training/diagrams_wo_text_20200131-?????-of-?????"
+        ],
+        "valid_data_path": [
+            "<path-to-data>didi_wo_text/validation/diagrams_wo_text_20200131-?????-of-?????"
+        ]
+    },
+    "decoder": {
+        "activation": "relu",
+        "dropout_rate": 0.0,
+        "hidden_units": [
+            "512",
+            "512",
+            "512",
+            "512"
+        ],
+        "layers": 4,
+        "name": "t_emb",
+        "regularizer_weight": 0.0,
+        "t_frequency_channels": 0
+    },
+    "embedding": {
+        "latent_units": 8,
+        "use_vae": false
+    },
+    "encoder": {
+        "autoregressive": true,
+        "d_model": 64,
+        "dropout_rate": 0.0,
+        "heads": 4,
+        "hidden_units": 256,
+        "layers": 6,
+        "name": "transformer",
+        "pos_encoding": 201,
+        "scale": true
+    },
+    "experiment": {
+        "checkpoint_frequency": 500,
+        "comment": "tf2-af03-t_s4-hyb32-tres2-gt_targ-fullstopg",
+        "eval_dir": "<path-to-eval-dir>/1590706693.5-PRED_TR_6x64_256-head_4-drop_0.0-TEMB_TR_64_6x256-head_4-drop_0.0-L8-4x512-gmm-loss_ER-B128_LR_tr",
+        "eval_frequency": null,
+        "eval_steps": 500,
+        "grad_clip_norm": 1.0,
+        "grad_clip_value": 0.0,
+        "id": "1590706693.5",
+        "learning_rate": {
+            "d_model": 64,
+            "initial_learning_rate": 0.001,
+            "name": "transformer",
+            "warmup_steps": 4000
+        },
+        "log_frequency": 100,
+        "max_epochs": null,
+        "max_steps": 200000,
+        "model_dir": "<path-to-log-dir>/1590706693.5-PRED_TR_6x64_256-head_4-drop_0.0-TEMB_TR_64_6x256-head_4-drop_0.0-L8-4x512-gmm-loss_ER-B128_LR_tr",
+        "pretrained_dir": null,
+        "pretrained_emb_id": null,
+        "tag": "PRED_TR_6x64_256-head_4-drop_0.0-TEMB_TR_64_6x256-head_4-drop_0.0-L8-4x512-gmm-loss_ER-B128_LR_tr"
+    },
+    "gdrive": {
+        "credential": null,
+        "sheet": null,
+        "workbook": null
+    },
+    "loss": {
+        "apply_predicted_embedding": true,
+        "apply_predicted_ink": false,
+        "apply_reconstructed_ink": true,
+        "ink": {
+            "pen": {
+                "eval_only": true,
+                "loss_type": "nll_cent_binary",
+                "out_key": "pen_logits",
+                "reduce": "mean_step_loss",
+                "target_key": "t_target_pen",
+                "weight": 1.0
+            },
+            "prefix": "reconstruction",
+            "stroke": {
+                "eval_only": false,
+                "loss_type": "nll_gmm",
+                "num_components": 20,
+                "out_key": "stroke_logits",
+                "reduce": "mean_step_loss",
+                "target_key": "t_target_stroke",
+                "weight": 1.0
+            }
+        },
+        "predicted_embedding": {
+            "predicted_embedding": {
+                "eval_only": false,
+                "loss_type": "nll_gmm",
+                "num_components": 10,
+                "out_key": "prediction",
+                "reduce": "mean_step_loss",
+                "target_key": "target",
+                "weight": 1.0
+            }
+        },
+        "predicted_ink": {
+            "pen": {
+                "eval_only": true,
+                "loss_type": "nll_cent_binary",
+                "out_key": "pen_logits",
+                "reduce": "mean_step_loss",
+                "target_key": "t_target_pen",
+                "weight": 1.0
+            },
+            "prefix": "reconstruction",
+            "stroke": {
+                "eval_only": false,
+                "loss_type": "nll_gmm",
+                "num_components": 20,
+                "out_key": "stroke_logits",
+                "reduce": "mean_step_loss",
+                "target_key": "t_target_stroke",
+                "weight": 1.0
+            }
+        },
+        "predicted_pos": {
+            "predicted_pos": {
+                "eval_only": false,
+                "loss_type": "nll_gmm",
+                "num_components": 10,
+                "out_key": "prediction",
+                "reduce": "mean_step_loss",
+                "target_key": "target",
+                "weight": 1.0
+            }
+        }
+    },
+    "position_model": {
+        "d_model": 64,
+        "dropout_rate": 0.0,
+        "heads": 4,
+        "hidden_units": 256,
+        "layers": 6,
+        "name": "transformer",
+        "output_size": 2,
+        "pos_encoding": false,
+        "scale": true
+    },
+    "predictive_model": {
+        "d_model": 64,
+        "dropout_rate": 0.0,
+        "heads": 4,
+        "hidden_units": 256,
+        "latent_units": 8,
+        "layers": 6,
+        "name": "transformer",
+        "num_predictive_inputs": 32,
+        "output_size": 8,
+        "pos_encoding": false,
+        "pred_input_type": "hybrid",
+        "scale": true,
+        "stop_predictive_grad": true,
+        "use_end_pos": false,
+        "use_start_pos": true
+    }
+}
