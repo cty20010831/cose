@@ -2,7 +2,7 @@ gspread
 matplotlib
 absl-py
 # Update into tensorflow without gpu 
-tensorflow==2.1.0
+tensorflow==2.13.0
 tensorflow_probability==0.9
 scikit-learn
 rdp
