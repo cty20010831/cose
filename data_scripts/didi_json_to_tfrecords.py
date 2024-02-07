@@ -15,15 +15,15 @@ import numpy as np
 from rdp import rdp
 
 # Setup and settings.
-DATA_DIR = None  # TODO: Set this path.
+DATA_DIR = None 
 if DATA_DIR is None and "COSE_DATA_DIR" in os.environ:
-  DATA_DIR = os.path.join(os.environ["COSE_DATA_DIR"], "didi_wo_text/")
+  # Set DATA_DIR to the Environment Variable of `COSE_DATA_DIR`
+  DATA_DIR = os.getenv('COSE_DATA_DIR')
 else:
   raise Exception("Data path must be set")
-
-# JSON_FILES=["full_raw_cat.ndjson"]
-# JSON_FILES=["full_raw_elephant.ndjson"]
-JSON_FILES=["diagrams_wo_text_20200131.ndjson"]
+print(DATA_DIR)
+# A sample ndjosn file from quick draw
+JSON_FILES = ["raw_Eiffel_Tower.ndjson"]
 NUM_TFRECORD_SHARDS = 10
 
 
@@ -201,12 +201,12 @@ def didi_preprocess(raw_ink, timestep=20):
 for json_file in JSON_FILES:
   i = 0
   counts = collections.defaultdict(int)
-  with create_tfrecord_writers(os.path.join(DATA_DIR), json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
+  with create_tfrecord_writers(DATA_DIR, json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
     with open(os.path.join(DATA_DIR, json_file)) as f:
       for line in f:
         ink = json.loads(line)
         
-        # Randomly (but in reproducible way) define training,validation and test
+        # Randomly (but in reproducible way) define training, validation and test
         # splits if the dataset doesn't do it.
         if "split" not in ink:
           rng = np.random.RandomState(i)

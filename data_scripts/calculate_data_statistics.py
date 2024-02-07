@@ -3,15 +3,17 @@
 import os
 from smartink.data.stroke_dataset import TFRecordStroke
 
-DATA_DIR = None  # TODO: Set this path.
+DATA_DIR = None
 
 if DATA_DIR is None and "COSE_DATA_DIR" in os.environ:
-  DATA_DIR = os.path.join(os.environ["COSE_DATA_DIR"], "didi_wo_text/")
+  # Set DATA_DIR to the Environment Variable of `COSE_DATA_DIR`
+  DATA_DIR = os.getenv('COSE_DATA_DIR')
 else:
   raise Exception("Data path must be set")
-  
-TFRECORD_PATTERN = "diagrams_wo_text_20200131-?????-of-?????"
-META_FILE = "didi_wo_text-stats-origin_abs_pos.npy"
+
+# Pattern that matches filenames of TFRecord files.
+TFRECORD_PATTERN = "raw_Eiffel_Tower-?????-of-?????"
+META_FILE = "_didi_wo_text-stats-origin_abs_pos.npy"
 
 USE_POSITION = True  # Calculate statistics for pixel coordinates (i.e. absolute positions) or relative offsets (i.e., velocity).
 MAX_LENGTH = 301  # Longer or shorter strokes will be filtered out.
