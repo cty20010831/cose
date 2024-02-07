@@ -13,7 +13,7 @@ else:
 
 # Pattern that matches filenames of TFRecord files.
 TFRECORD_PATTERN = "raw_Eiffel_Tower-?????-of-?????"
-META_FILE = "_didi_wo_text-stats-origin_abs_pos.npy"
+META_FILE = "_raw_Eiffel_Tower-stats-origin_abs_pos.npy"
 
 USE_POSITION = True  # Calculate statistics for pixel coordinates (i.e. absolute positions) or relative offsets (i.e., velocity).
 MAX_LENGTH = 301  # Longer or shorter strokes will be filtered out.
