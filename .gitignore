@@ -17,4 +17,6 @@ projector_models/
 
 # directories related to my project
 data_dir
+log_dir
+eval_dir
 
