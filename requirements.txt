@@ -7,3 +7,4 @@ tensorflow_probability==0.23.0
 scikit-learn
 rdp
 MulticoreTSNE
+json
