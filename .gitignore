@@ -15,8 +15,6 @@ experiments_eval_quickdraw/
 experiments_quickdraw/
 projector_models/
 
-# directories related to my project
-data_dir
-log_dir
-eval_dir
+# testing data set (Ei)
+code_testing/full_raw_The_Eiffel_Tower.ndjson
 
