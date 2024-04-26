@@ -23,6 +23,6 @@ echo "COSE_EVAL_DIR=$COSE_EVAL_DIR"
 echo "GDRIVE_API_KEY=$GDRIVE_API_KEY"
 
 # Run the code in the terminal 
-# chmod +x cose/environment_configuration.sh
-# source cose/environment_configuration.sh 
+# chmod +x environment_configuration.sh
+# source environment_configuration.sh 
 # conda deactivate
