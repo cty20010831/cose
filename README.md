@@ -2,21 +2,24 @@
 
 This repository is forked from [CoSE repository](https://github.com/eth-ait/cose) for my thesis project. 
 
-## Environmenmt
-Configure the virtual environment by running the following bash script:
+## Set up the workflow
+
+### Environmenmt
+Configure the virtual environment by running the following bash command targetting at [environment configuration bash script](environment_configuration.sh):
 ```bash
 chmod +x environment_configuration.sh
 source environment_configuration.sh 
 conda deactivate
 ```
 
-## Pre-trained Models
+### Pre-trained Models
 The pre-trained model can be downloaded from authors' [shared Google Drive](https://drive.google.com/drive/folders/1C6m7dbXaL4wn5Z4-K7ZniqoZaNTiQBdP?usp=sharing). 
 
 
-## Trained Dataset
+### Trained Dataset
 One of the trained dataset of CoSE model is [QuickDraw dataset](https://github.com/googlecreativelab/quickdraw-dataset). Note that CoSE model requires raw files.  
 
+## [thesis](thesis) directory
 
 ## Citation
 ```
