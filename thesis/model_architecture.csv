@@ -1,0 +1,6 @@
+Signature Key,target_seq_len,embedding_sample,target_pos,inp_embeddings,inp_pos,input_stroke,input_seq_len,pen,seq_len,stroke,embedding_sample,sigma,mu,pi,position_sample
+decode_stroke,int32,float32,,,,,,float32,int32,float32,,,,,
+predict_embedding,,,float32,float32,float32,,,,,,float32,float32,float32,float32,
+predict_position,,,,float32,float32,,,,,,,float32,float32,float32,float32
+encode_stroke,,,,,,float32,int32,,,,float32,,,,
+forward_pass,int32,,,,,float32,int32,float32,int32,float32,float32,,,,
