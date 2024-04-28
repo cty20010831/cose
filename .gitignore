@@ -15,6 +15,6 @@ experiments_eval_quickdraw/
 experiments_quickdraw/
 projector_models/
 
-# testing data set (Ei)
-code_testing/full_raw_The_Eiffel_Tower.ndjson
+# sample testing data
+sample_training
 
