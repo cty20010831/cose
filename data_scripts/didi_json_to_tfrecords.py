@@ -23,7 +23,7 @@ else:
   raise Exception("Data path must be set")
 print(DATA_DIR)
 # A sample ndjosn file from quick draw
-JSON_FILES = ["raw_Eiffel_Tower.ndjson"]
+JSON_FILES = ["full_raw_cat.ndjson"]
 NUM_TFRECORD_SHARDS = 10
 
 
