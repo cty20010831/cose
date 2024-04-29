@@ -13,7 +13,8 @@ import numpy as np
 
 # Define constants
 DATA_DIR = "thesis/data"
-JSON_FILES = ["raw_The_Eiffel_Tower.ndjson"]
+# JSON_FILES = ["raw_The_Eiffel_Tower.ndjson"]
+JSON_FILES = ["raw_cat.ndjson"]
 NUM_TFRECORD_SHARDS = 1
 
 def split_and_pad_strokes(stroke_list):
@@ -79,6 +80,18 @@ def ink_to_tfexample(ink):
 def pick_output_shard(num_shards):
   return random.randint(0, num_shards - 1)
 
+# def translate_to_origin(drawing):
+#     translated_drawing = []
+#     for stroke in drawing:
+#         start_x = stroke[0][0]
+#         start_y = stroke[1][0]
+#         translated_stroke = [
+#             [x - start_x for x in stroke[0]],
+#             [y - start_y for y in stroke[1]],
+#             stroke[2]  # time remains the same
+#         ]
+#         translated_drawing.append(translated_stroke)
+#     return translated_drawing
 
 def size_normalization(drawing):
   def get_bounding_box(drawing):
@@ -139,10 +152,31 @@ def resample_ink(drawing, timestep):
   resampled = [resample_stroke(s, timestep) for s in drawing]
   return resampled
 
-def didi_preprocess(raw_ink, timestep=20):
-  raw_ink = size_normalization(raw_ink)
-  raw_ink = resample_ink(raw_ink, timestep)
-  return raw_ink
+def preprocess_and_calculate_stats(json_file, timestep=20):
+    all_drawings = []
+    with open(json_file, 'r') as file:
+        for line in file:
+            ink = json.loads(line)
+            # processed_drawing = translate_to_origin(ink['drawing'])
+            processed_drawing = size_normalization(ink['drawing'])
+            processed_drawing = resample_ink(processed_drawing, timestep)
+            all_drawings.append(processed_drawing)
+
+    # Calculate stats
+    all_x = np.concatenate([np.array(stroke[0]) for drawing in all_drawings for stroke in drawing])
+    all_y = np.concatenate([np.array(stroke[1]) for drawing in all_drawings for stroke in drawing])
+
+    mean_x, stddev_x = np.mean(all_x), np.std(all_x)
+    mean_y, stddev_y = np.mean(all_y), np.std(all_y)
+
+    return mean_x, stddev_x, mean_y, stddev_y, all_drawings
+
+# Zero-mean unit-variance normalization
+def normalize(drawing, mean_x, stddev_x, mean_y, stddev_y):
+    for stroke in drawing:
+        stroke[0] = [(x - mean_x) / stddev_x for x in stroke[0]]
+        stroke[1] = [(y - mean_y) / stddev_y for y in stroke[1]]
+    return drawing
 
 @contextlib.contextmanager
 def create_tfrecord_writers(output_dir, output_file, num_output_shards):
@@ -161,28 +195,71 @@ def create_tfrecord_writers(output_dir, output_file, num_output_shards):
 
 for json_file in JSON_FILES:
     i = 0
-    # Create writers for all data to be written to a single type of TFRecord files
+
+    # Calculate statistics
+    mean_x, stddev_x, mean_y, stddev_y, all_drawings = preprocess_and_calculate_stats(os.path.join(DATA_DIR, json_file), timestep=20)
+    
+    # Save mean and sd of coordinates (across all drawings)
+    stats = {
+        'mean_x': mean_x,
+        'stddev_x': stddev_x,
+        'mean_y': mean_y,
+        'stddev_y': stddev_y
+    }
+
+    with open(os.path.join(DATA_DIR, "cat_statistics.json"), 'w') as stats_file:
+        json.dump(stats, stats_file)
+
     with create_tfrecord_writers(DATA_DIR, json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
-        with open(os.path.join(DATA_DIR, json_file)) as f:
-            for line in f:
-                ink = json.loads(line)
-                
-                if "key" not in ink:
-                    ink["key"] = str(hash(str(ink["drawing"])))
-                    ink["label_id"] = ink["key"]
-                
-                # Size normalization and resample ink
-                ink["drawing"] = didi_preprocess(ink["drawing"], timestep=20)
-                
-                # Convert to TFRecord
-                example = ink_to_tfexample(ink)
-                
-                # Write to a randomly picked shard
-                shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)
-                writers[shard_index].write(example.SerializeToString())  
-                
-                i += 1
-                if i % 100 == 0:
-                    print("# samples ", i)
+      with open(os.path.join(DATA_DIR, json_file)) as f:
+        for line in f:
+            ink = json.loads(line)
+            
+            if "key" not in ink:
+                ink["key"] = str(hash(str(ink["drawing"])))
+                ink["label_id"] = ink["key"]
+            
+            # Normalize ink
+            ink["drawing"] = normalize(all_drawings[i], mean_x, stddev_x, mean_y, stddev_y)
+            
+            # Convert to TFRecord
+            example = ink_to_tfexample(ink)
+            
+            # Write to a randomly picked shard
+            shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)
+            writers[shard_index].write(example.SerializeToString())
+
+            i += 1
+            if i % 100 == 0:
+                print("# samples ", i)
 
         print("Finished writing: %s" % json_file)
+
+# for json_file in JSON_FILES:
+#     i = 0
+#     # Create writers for all data to be written to a single type of TFRecord files
+#     with create_tfrecord_writers(DATA_DIR, json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
+#         with open(os.path.join(DATA_DIR, json_file)) as f:
+#             for line in f:
+#                 ink = json.loads(line)
+                
+#                 if "key" not in ink:
+#                     ink["key"] = str(hash(str(ink["drawing"])))
+#                     ink["label_id"] = ink["key"]
+                
+#                 # Size normalization and resample ink
+#                 ink["drawing"] = didi_preprocess(ink["drawing"], timestep=20)
+
+                
+#                 # Convert to TFRecord
+#                 example = ink_to_tfexample(ink)
+                
+#                 # Write to a randomly picked shard
+#                 shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)
+#                 writers[shard_index].write(example.SerializeToString())  
+                
+#                 i += 1
+#                 if i % 100 == 0:
+#                     print("# samples ", i)
+
+#         print("Finished writing: %s" % json_file)
