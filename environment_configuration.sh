@@ -7,7 +7,7 @@
 source ../.venv/bin/activate
 echo "Activated virtual environment venv_cose."
 
-export PROJECT_CODE_PATH="/Users/samcong/Library/CloudStorage/OneDrive-TheUniversityofChicago/Thesis/cose/sample_training"
+export PROJECT_CODE_PATH="."
 export PYTHONPATH="${PYTHONPATH}:${PROJECT_CODE_PATH}"
 
 export COSE_DATA_DIR="${PROJECT_CODE_PATH}/data_dir"
