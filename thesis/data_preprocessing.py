@@ -10,42 +10,98 @@ import os
 import random
 import tensorflow as tf
 import numpy as np
+import re
+import argparse
 
-# Define constants
-DATA_DIR = "thesis/data"
-# JSON_FILES = ["raw_The_Eiffel_Tower.ndjson"]
-JSON_FILES = ["raw_cat.ndjson"]
-NUM_TFRECORD_SHARDS = 1
+# def split_and_pad_strokes(stroke_list):
+#   '''
+#   The final stroke list has a shape of (num_strokes, max_len, 4):
+#     1) First dimension represents the total number of strokes
+#     2) Second dimension is the maximum length of any stroke in the provided list of strokes
+#     3) Third dimension consists of four channels that represent different components of each point in a stroke:
+#       Channel 0: x-coordinate of the point.
+#       Channel 1: y-coordinate of the point.
+#       Channel 2: Timestamp or a sequence index of the point within the stroke.
+#       Channel 3: Pen-lift indicator, which is a binary flag indicating whether the current point is the end of a stroke. A value of 1 indicates the end of a stroke; otherwise, it's 0. 
+#   '''
+#   max_len = np.array([len(stroke[0]) for stroke in stroke_list]).max()
+  
+#   strokes = []
+#   stroke_lengths = []
+#   for stroke in stroke_list:
+#     stroke_len = len(stroke[0])
+#     padded_stroke_with_pen = np.zeros([1, max_len, 4], dtype=np.float32)
+#     padded_stroke_with_pen[0, 0:stroke_len, 0] = stroke[0]
+#     padded_stroke_with_pen[0, 0:stroke_len, 1] = stroke[1]
+#     padded_stroke_with_pen[0, 0:stroke_len, 2] = stroke[2]
+#     padded_stroke_with_pen[0, stroke_len - 1, 3] = 1
+#     strokes.append(padded_stroke_with_pen)
+#     stroke_lengths.append(stroke_len)
+  
+#   all_strokes = np.concatenate(strokes, axis=0).astype(float)  # (num_strokes, max_len, 4)
+#   all_stroke_lengths = np.array(stroke_lengths).astype(int)
+#   return all_strokes, all_stroke_lengths
 
+# Debuggin version of the "split_and_pad_strokes" function. 
 def split_and_pad_strokes(stroke_list):
-  '''
-  The final stroke list has a shape of (num_strokes, max_len, 4):
-    1) First dimension represents the total number of strokes
-    2) Second dimension is the maximum length of any stroke in the provided list of strokes
-    3) Third dimension consists of four channels that represent different components of each point in a stroke:
-      Channel 0: x-coordinate of the point.
-      Channel 1: y-coordinate of the point.
-      Channel 2: Timestamp or a sequence index of the point within the stroke.
-      Channel 3: Pen-lift indicator, which is a binary flag indicating whether the current point is the end of a stroke. A value of 1 indicates the end of a stroke; otherwise, it's 0. 
-  '''
-  max_len = np.array([len(stroke[0]) for stroke in stroke_list]).max()
-  
-  strokes = []
-  stroke_lengths = []
-  for stroke in stroke_list:
-    stroke_len = len(stroke[0])
-    padded_stroke_with_pen = np.zeros([1, max_len, 4], dtype=np.float32)
-    padded_stroke_with_pen[0, 0:stroke_len, 0] = stroke[0]
-    padded_stroke_with_pen[0, 0:stroke_len, 1] = stroke[1]
-    padded_stroke_with_pen[0, 0:stroke_len, 2] = stroke[2]
-    padded_stroke_with_pen[0, stroke_len - 1, 3] = 1
-    strokes.append(padded_stroke_with_pen)
-    stroke_lengths.append(stroke_len)
-  
-  all_strokes = np.concatenate(strokes, axis=0).astype(float)  # (num_strokes, max_len, 4)
-  all_stroke_lengths = np.array(stroke_lengths).astype(int)
-  return all_strokes, all_stroke_lengths
-
+    '''
+    The final stroke list has a shape of (num_strokes, max_len, 4):
+      1) First dimension represents the total number of strokes
+      2) Second dimension is the maximum length of any stroke in the provided list of strokes
+      3) Third dimension consists of four channels that represent different components of each point in a stroke:
+        Channel 0: x-coordinate of the point.
+        Channel 1: y-coordinate of the point.
+        Channel 2: Timestamp or a sequence index of the point within the stroke.
+        Channel 3: Pen-lift indicator, which is a binary flag indicating whether the current point is the end of a stroke. A value of 1 indicates the end of a stroke; otherwise, it's 0. 
+    '''
+    # print("DEBUG: Received stroke_list with {} strokes".format(len(stroke_list)))
+    
+    # Check if stroke_list is empty
+    if not stroke_list:
+        print("DEBUG: Empty stroke_list encountered in split_and_pad_strokes!")
+        return np.empty((0, 0, 4), dtype=np.float32), np.array([], dtype=int)
+    
+    # Debug: Print the length of each stroke
+    stroke_lengths = []
+    for idx, stroke in enumerate(stroke_list):
+        if not stroke or not stroke[0]:
+            print("DEBUG: Stroke index {} is empty or missing x-coordinates: {}".format(idx, stroke))
+            stroke_lengths.append(0)
+        else:
+            stroke_length = len(stroke[0])
+            stroke_lengths.append(stroke_length)
+    
+    # If all strokes are empty, return empty arrays
+    if all(l == 0 for l in stroke_lengths):
+        print("DEBUG: All strokes are empty!")
+        return np.empty((0, 0, 4), dtype=np.float32), np.array([], dtype=int)
+    
+    max_len = np.array([l for l in stroke_lengths if l > 0]).max()
+    # print("DEBUG: max_len calculated as ", max_len)
+    
+    strokes = []
+    final_stroke_lengths = []
+    for idx, stroke in enumerate(stroke_list):
+        stroke_len = len(stroke[0])
+        if stroke_len == 0:
+            print("DEBUG: Skipping stroke at index {} because it is empty.".format(idx))
+            continue  # Skip empty strokes
+        padded_stroke_with_pen = np.zeros([1, max_len, 4], dtype=np.float32)
+        padded_stroke_with_pen[0, 0:stroke_len, 0] = stroke[0]
+        padded_stroke_with_pen[0, 0:stroke_len, 1] = stroke[1]
+        padded_stroke_with_pen[0, 0:stroke_len, 2] = stroke[2]
+        padded_stroke_with_pen[0, stroke_len - 1, 3] = 1
+        strokes.append(padded_stroke_with_pen)
+        final_stroke_lengths.append(stroke_len)
+    
+    if not strokes:
+        print("DEBUG: After processing, no valid strokes remain.")
+        return np.empty((0, 0, 4), dtype=np.float32), np.array([], dtype=int)
+    
+    all_strokes = np.concatenate(strokes, axis=0).astype(float)  # (num_strokes, max_len, 4)
+    all_stroke_lengths = np.array(final_stroke_lengths).astype(int)
+    # print("DEBUG: Final all_strokes shape: ", all_strokes.shape)
+    return all_strokes, all_stroke_lengths
 
 def ink_to_tfexample(ink):
   """Takes a LabeledInk and outputs a TF.Example with stroke information.
@@ -92,6 +148,18 @@ def pick_output_shard(num_shards):
 #         ]
 #         translated_drawing.append(translated_stroke)
 #     return translated_drawing
+
+def translate_t_to_zero(drawing):
+    translated_drawing = []
+    for stroke in drawing:
+        start_t = stroke[2][0]
+        translated_stroke = [
+            stroke[0],  # x remains the same
+            stroke[1],  # y remains the same
+            [t - start_t for t in stroke[2]] 
+        ]
+        translated_drawing.append(translated_stroke)
+    return translated_drawing
 
 def size_normalization(drawing):
   def get_bounding_box(drawing):
@@ -152,12 +220,13 @@ def resample_ink(drawing, timestep):
   resampled = [resample_stroke(s, timestep) for s in drawing]
   return resampled
 
-def preprocess_and_calculate_stats(json_file, timestep=20):
+def preprocess_and_calculate_stats(json_file, timestep):
     all_drawings = []
     with open(json_file, 'r') as file:
         for line in file:
             ink = json.loads(line)
             # processed_drawing = translate_to_origin(ink['drawing'])
+            processed_drawing = translate_t_to_zero(ink['drawing'])
             processed_drawing = size_normalization(ink['drawing'])
             processed_drawing = resample_ink(processed_drawing, timestep)
             all_drawings.append(processed_drawing)
@@ -193,73 +262,81 @@ def create_tfrecord_writers(output_dir, output_file, num_output_shards):
         for writer in writers:
             writer.close()
 
-for json_file in JSON_FILES:
-    i = 0
+def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Convert .ndjson data into tfrecords for CoSE model.')
+    parser.add_argument('--data_dir', type=str, default="data", 
+                        help='Directory containing the input data files')
+    parser.add_argument('--mode', type=str, choices=['test', 'real'], default='real',
+                        help='Use test data or real data')
+    parser.add_argument('--num_shards', type=int, default=1,
+                        help='Number of tfrecord shards to create')
 
-    # Calculate statistics
-    mean_x, stddev_x, mean_y, stddev_y, all_drawings = preprocess_and_calculate_stats(os.path.join(DATA_DIR, json_file), timestep=20)
-    
-    # Save mean and sd of coordinates (across all drawings)
-    stats = {
-        'mean_x': mean_x,
-        'stddev_x': stddev_x,
-        'mean_y': mean_y,
-        'stddev_y': stddev_y
-    }
+    # Get arguments
+    args = parser.parse_args()
 
-    with open(os.path.join(DATA_DIR, "cat_statistics.json"), 'w') as stats_file:
-        json.dump(stats, stats_file)
+    # Define constants based on arguments
+    DATA_DIR = args.data_dir
+    NUM_TFRECORD_SHARDS = args.num_shards
 
-    with create_tfrecord_writers(DATA_DIR, json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
-      with open(os.path.join(DATA_DIR, json_file)) as f:
-        for line in f:
-            ink = json.loads(line)
-            
-            if "key" not in ink:
-                ink["key"] = str(hash(str(ink["drawing"])))
-                ink["label_id"] = ink["key"]
-            
-            # Normalize ink
-            ink["drawing"] = normalize(all_drawings[i], mean_x, stddev_x, mean_y, stddev_y)
-            
-            # Convert to TFRecord
-            example = ink_to_tfexample(ink)
-            
-            # Write to a randomly picked shard
-            shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)
-            writers[shard_index].write(example.SerializeToString())
+    # Set JSON_FILES and timestep for resampling based on mode
+    # Note: timestep shouldn't be too small, as transfomer model can't handle too many tokens
+    if args.mode == 'test':
+        JSON_FILES = ["raw_cat.ndjson"]
+        timestep = 20
+    else:
+        JSON_FILES = [
+          "raw_group_A_drawings.ndjson", 
+          "raw_group_B_drawings.ndjson", 
+          "raw_group_C_drawings.ndjson"
+        ]
+        timestep = 0.1 
 
-            i += 1
-            if i % 100 == 0:
-                print("# samples ", i)
+    for json_file in JSON_FILES:
+        i = 0
 
-        print("Finished writing: %s" % json_file)
+        # Calculate statistics
+        mean_x, stddev_x, mean_y, stddev_y, all_drawings = preprocess_and_calculate_stats(os.path.join(DATA_DIR, json_file), timestep=timestep)
+        
+        # Save mean and sd of coordinates (across all drawings)
+        stats = {
+            'mean_x': mean_x,
+            'stddev_x': stddev_x,
+            'mean_y': mean_y,
+            'stddev_y': stddev_y
+        }
 
-# for json_file in JSON_FILES:
-#     i = 0
-#     # Create writers for all data to be written to a single type of TFRecord files
-#     with create_tfrecord_writers(DATA_DIR, json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
-#         with open(os.path.join(DATA_DIR, json_file)) as f:
-#             for line in f:
-#                 ink = json.loads(line)
+        text = re.search(r'raw_(.*?)\.ndjson', json_file).group(1)
+
+        with open(os.path.join(DATA_DIR, f"{text}_statistics.json"), 'w') as stats_file:
+            json.dump(stats, stats_file)
+
+        with create_tfrecord_writers(DATA_DIR, json_file.split(".")[0], NUM_TFRECORD_SHARDS) as writers:
+          with open(os.path.join(DATA_DIR, json_file)) as f:
+            print("Processing: %s" % json_file)
+            for v, line in enumerate(f, 1):
+                # print("Processing line {}".format(v))
+                ink = json.loads(line)
                 
-#                 if "key" not in ink:
-#                     ink["key"] = str(hash(str(ink["drawing"])))
-#                     ink["label_id"] = ink["key"]
+                if "key" not in ink:
+                    ink["key"] = str(hash(str(ink["drawing"])))
+                    ink["label_id"] = ink["key"]
                 
-#                 # Size normalization and resample ink
-#                 ink["drawing"] = didi_preprocess(ink["drawing"], timestep=20)
+                # Normalize ink
+                ink["drawing"] = normalize(all_drawings[i], mean_x, stddev_x, mean_y, stddev_y)
+                
+                # Convert to TFRecord
+                example = ink_to_tfexample(ink)
+                
+                # Write to a randomly picked shard
+                shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)
+                writers[shard_index].write(example.SerializeToString())
 
-                
-#                 # Convert to TFRecord
-#                 example = ink_to_tfexample(ink)
-                
-#                 # Write to a randomly picked shard
-#                 shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)
-#                 writers[shard_index].write(example.SerializeToString())  
-                
-#                 i += 1
-#                 if i % 100 == 0:
-#                     print("# samples ", i)
+                i += 1
+                if i % 100 == 0:
+                    print("# samples ", i)
 
-#         print("Finished writing: %s" % json_file)
+            print("Finished writing: %s" % json_file)
+
+if __name__ == "__main__":
+    main()
