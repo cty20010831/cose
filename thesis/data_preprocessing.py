@@ -120,6 +120,8 @@ def ink_to_tfexample(ink, mode):
   features["label_id"] = tf.train.Feature(
       bytes_list=tf.train.BytesList(value=[ink["label_id"].encode("utf-8")]))
   if mode == 'real': 
+    features['batch_name'] = tf.train.Feature(
+        bytes_list=tf.train.BytesList(value=[ink['batch_name'].encode("utf-8")]))
     features["worker_id"] = tf.train.Feature(
         bytes_list=tf.train.BytesList(value=[ink["worker_id"].encode("utf-8")]))
   
@@ -267,7 +269,21 @@ def create_tfrecord_writers(output_dir, output_file, num_output_shards):
 
 def main():
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Convert .ndjson data into tfrecords for CoSE model.')
+    parser = argparse.ArgumentParser(
+      description='Convert .ndjson data into tfrecords for CoSE model.',
+      epilog="""
+        Example usage:
+        # Process real data
+        python3 data_preprocessing.py --mode real
+
+        # Process test data
+        python3 data_preprocessing.py --mode test
+
+        # See example usage of this function
+        python3 scripts/save_image.py --help
+        """,
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument('--data_dir', type=str, default="data", 
                         help='Directory containing the input data files')
     parser.add_argument('--mode', type=str, choices=['test', 'real'], default='real',
@@ -329,7 +345,7 @@ def main():
                 ink["drawing"] = normalize(all_drawings[i], mean_x, stddev_x, mean_y, stddev_y)
                 
                 # Convert to TFRecord
-                example = ink_to_tfexample(ink)
+                example = ink_to_tfexample(ink, args.mode)
                 
                 # Write to a randomly picked shard
                 shard_index = pick_output_shard(NUM_TFRECORD_SHARDS)

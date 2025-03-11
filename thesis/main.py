@@ -27,6 +27,7 @@ def _parse_function(example_proto, mode):
         feature_description = {
             'key': tf.io.FixedLenFeature([], tf.string),
             'label_id': tf.io.FixedLenFeature([], tf.string),
+            'batch_name': tf.io.FixedLenFeature([], tf.string),
             'worker_id': tf.io.FixedLenFeature([], tf.string),
             'ink': tf.io.VarLenFeature(tf.float32),
             'stroke_length': tf.io.VarLenFeature(tf.int64),
@@ -77,6 +78,7 @@ def main():
         ]
     else:
         fieldnames = [
+            "batch_name",
             "worker_id", 
             "drawing_group", 
             "avg_entropy", 
@@ -97,15 +99,15 @@ def main():
 
             tfrecord_path = f'data/{drawing_name}-00000-of-00001.tfrecord'
             raw_drawing_dataset = tf.data.TFRecordDataset(tfrecord_path)
-            parsed_drawing_dataset = raw_drawing_dataset.map(_parse_function)
+            parsed_drawing_dataset = raw_drawing_dataset.map(lambda x: _parse_function(x, mode=args.mode))
 
             # Just test the first drawing
             # for parsed_features in parsed_drawing_dataset.take(1):
             # Iterate over the dataset
             for parsed_features in parsed_drawing_dataset:
                 if args.mode == 'real':
+                    batch_name = parsed_features['batch_name'].numpy().decode('utf-8')
                     worker_id = parsed_features['worker_id'].numpy().decode('utf-8')
-                    # print("Worker ID: ", worker_id)
                 ink = tf.sparse.to_dense(parsed_features['ink'])
                 # print("Drawing: ", ink)
                 shape = parsed_features['shape']
@@ -149,6 +151,7 @@ def main():
                     }
                 else:
                     row_data = {
+                        "batch_name": batch_name,
                         "worker_id": worker_id,
                         "drawing_group": group_label,
                         "avg_entropy": avg_entropy,
