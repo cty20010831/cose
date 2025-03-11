@@ -103,13 +103,13 @@ def split_and_pad_strokes(stroke_list):
     # print("DEBUG: Final all_strokes shape: ", all_strokes.shape)
     return all_strokes, all_stroke_lengths
 
-def ink_to_tfexample(ink):
+def ink_to_tfexample(ink, mode):
   """Takes a LabeledInk and outputs a TF.Example with stroke information.
 
   Args:
     ink: A JSON array containing the drawing information.
-    dot: (Optional) textual content of the GrahViz dotfile that was used to
-      generate the prompt image.
+    mode: A string indicating the mode of the data (test or real). If real data, 
+      there would be additional field of worker_id
 
   Returns:
     a Tensorflow Example proto with the drawing data.
@@ -119,7 +119,10 @@ def ink_to_tfexample(ink):
       bytes_list=tf.train.BytesList(value=[ink["key"].encode("utf-8")]))
   features["label_id"] = tf.train.Feature(
       bytes_list=tf.train.BytesList(value=[ink["label_id"].encode("utf-8")]))
-
+  if mode == 'real': 
+    features["worker_id"] = tf.train.Feature(
+        bytes_list=tf.train.BytesList(value=[ink["worker_id"].encode("utf-8")]))
+  
   all_strokes, all_stroke_lengths = split_and_pad_strokes(ink["drawing"])
   features["ink"] = tf.train.Feature(
       float_list=tf.train.FloatList(value=all_strokes.flatten()))
