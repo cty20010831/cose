@@ -18,8 +18,6 @@ projector_models/
 # sample testing data
 sample_training
 
-# DS_Store
-.DS_Store
-
 thesis/data
+thesis/output.csv
 
