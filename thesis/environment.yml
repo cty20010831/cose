@@ -1,0 +1,14 @@
+name: cose
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - matplotlib
+  - scikit-learn
+  - pip:
+    - gspread
+    - absl-py
+    - tensorflow==2.13.0
+    - tensorflow-probability==0.23.0
