@@ -10,8 +10,8 @@ def visualize_stroke(unnormalized_stroke):
     '''
     
     # Create a white canvas
-    canvas_width = 500
-    canvas_height = 500
+    canvas_width = 1000
+    canvas_height = 1000
     image = Image.new("RGB", (canvas_width, canvas_height), "white")
     draw = ImageDraw.Draw(image)
 
