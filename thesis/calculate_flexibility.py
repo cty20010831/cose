@@ -90,10 +90,16 @@ def calculate_flexibility_measures(model, reshaped_ink, stroke_length):
             target_pos=tf.expand_dims(predict_position_result['position_sample'], axis=0),
             inp_embeddings=input_embedding
         )
-        
-        # Calculate measures
-        entropy_array[i] = entropy_gmm(predict_embedding_result)
-        bhattacharyya_distance_array[i] = bhattacharyya_distance(predict_embedding_result)
+
+        # Calculate measures (consider both position and embedding)
+        entropy_pos = entropy_gmm(predict_position_result)
+        entropy_emb = entropy_gmm(predict_embedding_result)
+        bhatta_pos = bhattacharyya_distance(predict_position_result)
+        bhatta_emb = bhattacharyya_distance(predict_embedding_result)
+
+        # Sum both sources of uncertainty
+        entropy_array[i] = entropy_pos + entropy_emb
+        bhattacharyya_distance_array[i] = bhatta_pos + bhatta_emb
 
     return entropy_array, bhattacharyya_distance_array
 
