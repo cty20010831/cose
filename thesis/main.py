@@ -12,6 +12,13 @@ from calculate_flexibility import (
     calculate_inflection_proportion
 )
 
+# Helper to find the first stroke where any t > 0 (participant stroke)
+def first_participant_index(ink_array):
+    for i, stroke in enumerate(ink_array):
+        if np.any(stroke[:, 2] > 0):
+            return i
+    return len(ink_array)
+
 # Define the feature structure of TF_example
 def _parse_function(example_proto, mode):
     if mode == "test":
@@ -123,10 +130,17 @@ def main():
                     print("Encountered empty drawing")
                     avg_entropy, avg_bhatt_dist, entropy_proportion_inflection, bhatt_proportion_inflection = 0, 0, 0, 0
                 else:
-                    # Otherwise, calculate
+                    # Otherwise, calculate flexibility metrics
                     entropy_array, bhattacharyya_distance_array = calculate_flexibility_measures(
                         model, reshaped_ink, stroke_length
                     )
+
+                    # Only include values derived from the participant strokes (not the background)
+                    participant_start_idx = first_participant_index(reshaped_ink.numpy())
+
+                    # Slice flexibility results to include only participant strokes
+                    participant_entropy = entropy_array[participant_start_idx:]
+                    participant_bhatt = bhattacharyya_distance_array[participant_start_idx:]
 
                     # Calculate the average entropy and Bhattacharyya distance
                     avg_entropy = np.mean(entropy_array)
