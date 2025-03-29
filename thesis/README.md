@@ -24,7 +24,7 @@ First, load each participant's drawing (for all the three groups of drawings) in
 python load_drawings.py
 ```
 
-Next, run data preprocessing on each group of incomplete shape (stimuli) to convert .ndjson data into the  format CoSE expects and store them in tfrecords.
+Next, run data preprocessing on each group of incomplete shape (stimuli) to convert .ndjson data into the format CoSE expects and store them in tfrecords.
 
 ```bash
 python data_preprocessing.py
