@@ -7,6 +7,7 @@ files containing all participants' drawings in the respective group.
 import os
 import json
 import glob
+import re
 
 DRAWING_DIR = "../../../data/drawings/ndjson"
 OUTPUT_DIR = "data"
@@ -17,9 +18,9 @@ def main():
     
     # Output files for each group
     group_files = {
-        'A': os.path.join(OUTPUT_DIR, 'raw_group_A_drawings.ndjson'),
-        'B': os.path.join(OUTPUT_DIR, 'raw_group_B_drawings.ndjson'),
-        'C': os.path.join(OUTPUT_DIR, 'raw_group_C_drawings.ndjson')
+        'Group_1': os.path.join(OUTPUT_DIR, 'raw_Group_1_drawings.ndjson'),
+        'Group_2': os.path.join(OUTPUT_DIR, 'raw_Group_2_drawings.ndjson'),
+        'Group_3': os.path.join(OUTPUT_DIR, 'raw_Group_3_drawings.ndjson')
     }
     
     # Initialize output files (clear existing content)
@@ -40,9 +41,9 @@ def main():
         for drawing_file in drawing_files:
             filename = os.path.basename(drawing_file)
             
-            # Extract group identifier from filename (e.g., A1HGOFQI8TQCWB_Group_A.ndjson -> A)
+            # Extract group identifier from filename (e.g., A1HGOFQI8TQCWB_Group_1.ndjson -> 1)
             if "_Group_" in filename:
-                group = filename.split("_Group_")[1].split(".")[0]
+                group = re.search(r"Group_(\d+)", filename).group(0)
                 
                 # Check if it's one of our target groups
                 if group in group_files:

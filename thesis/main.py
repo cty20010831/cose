@@ -6,6 +6,7 @@ import tensorflow as tf
 import argparse
 import numpy as np
 import csv
+import re
 
 from calculate_flexibility import (
     calculate_flexibility_measures,
@@ -64,9 +65,9 @@ def main():
         JSON_FILES = ["raw_cat.ndjson"]
     else:
         JSON_FILES = [
-          "raw_group_A_drawings.ndjson", 
-          "raw_group_B_drawings.ndjson", 
-          "raw_group_C_drawings.ndjson"
+          "raw_Group_1_drawings.ndjson", 
+          "raw_Group_2_drawings.ndjson", 
+          "raw_Group_3_drawings.ndjson"
         ]
     
     # Load pre-trained CoSE model
@@ -101,8 +102,7 @@ def main():
         # Iterate over the drawing files
         for f in JSON_FILES:
             drawing_name = f.split(".")[0]
-            parts = drawing_name.split("_")
-            group_label = "Incomplete_Group_" + parts[2]         
+            group_label = re.search(r"Group_(\d+)", drawing_name).group(0)   
 
             tfrecord_path = f'data/{drawing_name}-00000-of-00001.tfrecord'
             raw_drawing_dataset = tf.data.TFRecordDataset(tfrecord_path)
@@ -138,21 +138,15 @@ def main():
                     # Only include values derived from the participant strokes (not the background)
                     participant_start_idx = first_participant_index(reshaped_ink.numpy())
 
-                    # Slice flexibility results to include only participant strokes
+                    # Only use participant-derived flexibility scores
                     participant_entropy = entropy_array[participant_start_idx:]
                     participant_bhatt = bhattacharyya_distance_array[participant_start_idx:]
 
-                    # Calculate the average entropy and Bhattacharyya distance
-                    avg_entropy = np.mean(entropy_array)
-                    # print("Average Entropy:", avg_entropy)  
-                    avg_bhatt_dist = np.mean(bhattacharyya_distance_array)
-                    # print("Average Bhattacharyya Distance:", avg_bhatt_dist)
-
-                    # Calcualte the proportion of inflection points
-                    entropy_proportion_inflection = calculate_inflection_proportion(entropy_array)
-                    # print("Proportion of inflection points for entropy array:", entropy_proportion_inflection)
-                    bhatt_proportion_inflection = calculate_inflection_proportion(bhattacharyya_distance_array)
-                    # print("Proportion of inflection points for Bhattacharyya distance array:", bhatt_proportion_inflection)
+                    # Calculate final flexibility metrics (participant only)
+                    avg_entropy = np.mean(participant_entropy)
+                    avg_bhatt_dist = np.mean(participant_bhatt)
+                    entropy_proportion_inflection = calculate_inflection_proportion(participant_entropy)
+                    bhatt_proportion_inflection = calculate_inflection_proportion(participant_bhatt)
 
                 # Write results to CSV
                 if args.mode == 'test':

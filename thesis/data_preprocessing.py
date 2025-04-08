@@ -305,9 +305,9 @@ def main():
         timestep = 20
     else:
         JSON_FILES = [
-          "raw_group_A_drawings.ndjson", 
-          "raw_group_B_drawings.ndjson", 
-          "raw_group_C_drawings.ndjson"
+          "raw_Group_1_drawings.ndjson", 
+          "raw_Group_2_drawings.ndjson", 
+          "raw_Group_3_drawings.ndjson"
         ]
         timestep = 0.1 
 
