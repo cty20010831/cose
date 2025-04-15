@@ -1,22 +1,6 @@
 # CoSE: Compositional Stroke Embeddings
 
-This repository is forked from [CoSE repository](https://github.com/eth-ait/cose) for my thesis project. 
-
-
-## To-do
-1. Update the code to make sure the preprocessing and undoing preprocessing work as intended.
-2. Finish autoregressive_prediction function.
-3. Mark some scripts useful for understanding the CoSE model architecture and data preprocessing. Create a table to add brief introduction to these scripts. Some examples include:
-    - data_scripts/didi_json_to_tfrecords.py
-    - data_scripts/calculate_data_statistics.py
-    - smartink-js/lib/stroke_predictor.js
-    - smartink-js/lib/stroke_embedding.js
-    - smartink/data/stroke_dataset.py
-    - smartink/models/stroke/t_emb.py
-    - smartink/source/eval_engine.py 
-    - smartink/util/ink.py. 
-4. Think about whether the [original evaluation python script](smartink/source/eval_engine.py) can be adapted to help do both quantitative and qualitative evaluation.  
-
+This repository is forked from [CoSE repository](https://github.com/eth-ait/cose) for my thesis project.   
 
 ## Set up the workflow
 
